@@ -25,7 +25,7 @@ An AI-powered interview preparation platform that analyzes resumes and job descr
 
 ## Home Page
 
-<img width="100%" src="./screenshots/home.png" />
+<img width="100%" src="screenshots\home.png.png" />
 
 ---
 
