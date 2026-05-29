@@ -31,13 +31,13 @@ An AI-powered interview preparation platform that analyzes resumes and job descr
 
 ## Technical Questions Dashboard
 
-<img width="100%" src="screenshots\technical.png" />
+<img width="100%" src="screenshots\technical.png.png" />
 
 ---
 
 ## Preparation Roadmap
 
-<img width="100%" src="screenshots\roadmap.png" />
+<img width="100%" src="screenshots\roadmap.png.png" />
 
 ---
 
