@@ -3,7 +3,7 @@ const { GoogleGenAI } = require("@google/genai");
 const { z } = require("zod");
 const { zodToJsonSchema } = require("zod-to-json-schema");
 
-// ✅ CACHE IMPORT
+// CACHE IMPORT
 const { cache, getCacheKey } = require("../utils/cache");
 
 /* =========================
@@ -63,11 +63,11 @@ async function safeGenerate(prompt, schema) {
 
   const key = getCacheKey(prompt);
 
-  // ✅ CHECK CACHE
+  // CHECK CACHE
   const cached = cache.get(key);
 
   if (cached) {
-    console.log("⚡ Cache hit");
+    console.log("Cache hit");
     return cached;
   }
 
@@ -78,7 +78,7 @@ async function safeGenerate(prompt, schema) {
 
     try {
 
-      console.log(`🧠 AI attempt ${attempts + 1}`);
+      console.log("AI attempt " + (attempts + 1));
 
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
@@ -98,7 +98,7 @@ async function safeGenerate(prompt, schema) {
 
       const validated = schema.parse(parsed);
 
-      // ✅ STORE CACHE
+      // STORE CACHE
       cache.set(key, validated);
 
       return validated;
@@ -106,7 +106,7 @@ async function safeGenerate(prompt, schema) {
     } catch (err) {
 
       console.error(
-        `❌ AI attempt ${attempts + 1} failed:`,
+        "AI attempt " + (attempts + 1) + " failed:",
         err.message
       );
 
@@ -173,7 +173,7 @@ ${jobDescription}
 async function generateResumePdf() {
 
   console.log(
-    "⚠️ PDF generation temporarily disabled"
+    "PDF generation temporarily disabled"
   );
 
   return Buffer.from(
