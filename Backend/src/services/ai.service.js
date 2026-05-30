@@ -3,11 +3,11 @@ const { GoogleGenAI } = require("@google/genai");
 const { z } = require("zod");
 const { zodToJsonSchema } = require("zod-to-json-schema");
 
-// Cache import
+// Cache utilities
 const { cache, getCacheKey } = require("../utils/cache");
 
 /* =========================
-   Gemini Config
+   GEMINI CONFIG
 ========================= */
 
 const ai = new GoogleGenAI({
@@ -15,7 +15,7 @@ const ai = new GoogleGenAI({
 });
 
 /* =========================
-   Zod Schema
+   ZOD SCHEMA
 ========================= */
 
 const interviewReportSchema = z.object({
@@ -56,13 +56,14 @@ const interviewReportSchema = z.object({
 });
 
 /* =========================
-   Safe AI Generator
+   SAFE AI GENERATOR
 ========================= */
 
 async function safeGenerate(prompt, schema) {
+
   const key = getCacheKey(prompt);
 
-  // Check cache
+  // Check cache first
   const cached = cache.get(key);
 
   if (cached) {
@@ -74,7 +75,9 @@ async function safeGenerate(prompt, schema) {
   let lastError;
 
   while (attempts < 3) {
+
     try {
+
       console.log("AI attempt " + (attempts + 1));
 
       const response = await ai.models.generateContent({
@@ -94,12 +97,13 @@ async function safeGenerate(prompt, schema) {
 
       const validated = schema.parse(parsed);
 
-      // Store cache
+      // Save cache
       cache.set(key, validated);
 
       return validated;
 
     } catch (err) {
+
       console.error(
         "AI attempt " + (attempts + 1) + " failed:",
         err.message
@@ -116,7 +120,7 @@ async function safeGenerate(prompt, schema) {
 }
 
 /* =========================
-   Generate Interview Report
+   GENERATE INTERVIEW REPORT
 ========================= */
 
 async function generateInterviewReport({
@@ -161,10 +165,11 @@ ${jobDescription}
 }
 
 /* =========================
-   Temporary PDF Function
+   TEMP PDF FUNCTION
 ========================= */
 
 async function generateResumePdf() {
+
   console.log("PDF generation temporarily disabled");
 
   return Buffer.from(
@@ -173,7 +178,7 @@ async function generateResumePdf() {
 }
 
 /* =========================
-   Exports
+   EXPORTS
 ========================= */
 
 module.exports = {
