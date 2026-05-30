@@ -3,11 +3,11 @@ const { GoogleGenAI } = require("@google/genai");
 const { z } = require("zod");
 const { zodToJsonSchema } = require("zod-to-json-schema");
 
-// CACHE IMPORT
+// Cache import
 const { cache, getCacheKey } = require("../utils/cache");
 
 /* =========================
-   GEMINI CONFIG
+   Gemini Config
 ========================= */
 
 const ai = new GoogleGenAI({
@@ -15,7 +15,7 @@ const ai = new GoogleGenAI({
 });
 
 /* =========================
-   ZOD SCHEMA
+   Zod Schema
 ========================= */
 
 const interviewReportSchema = z.object({
@@ -56,14 +56,13 @@ const interviewReportSchema = z.object({
 });
 
 /* =========================
-   SAFE AI GENERATOR
+   Safe AI Generator
 ========================= */
 
 async function safeGenerate(prompt, schema) {
-
   const key = getCacheKey(prompt);
 
-  // CHECK CACHE
+  // Check cache
   const cached = cache.get(key);
 
   if (cached) {
@@ -75,14 +74,11 @@ async function safeGenerate(prompt, schema) {
   let lastError;
 
   while (attempts < 3) {
-
     try {
-
       console.log("AI attempt " + (attempts + 1));
 
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
-
         contents: prompt,
 
         config: {
@@ -98,13 +94,12 @@ async function safeGenerate(prompt, schema) {
 
       const validated = schema.parse(parsed);
 
-      // STORE CACHE
+      // Store cache
       cache.set(key, validated);
 
       return validated;
 
     } catch (err) {
-
       console.error(
         "AI attempt " + (attempts + 1) + " failed:",
         err.message
@@ -121,7 +116,7 @@ async function safeGenerate(prompt, schema) {
 }
 
 /* =========================
-   GENERATE INTERVIEW REPORT
+   Generate Interview Report
 ========================= */
 
 async function generateInterviewReport({
@@ -142,7 +137,6 @@ STRICT RULES:
 
 TASK:
 Analyze the candidate profile and generate:
-
 1. Match score
 2. Technical interview questions
 3. Behavioral interview questions
@@ -167,14 +161,11 @@ ${jobDescription}
 }
 
 /* =========================
-   TEMP PDF FUNCTION
+   Temporary PDF Function
 ========================= */
 
 async function generateResumePdf() {
-
-  console.log(
-    "PDF generation temporarily disabled"
-  );
+  console.log("PDF generation temporarily disabled");
 
   return Buffer.from(
     "PDF generation temporarily disabled"
@@ -182,7 +173,7 @@ async function generateResumePdf() {
 }
 
 /* =========================
-   EXPORTS
+   Exports
 ========================= */
 
 module.exports = {
