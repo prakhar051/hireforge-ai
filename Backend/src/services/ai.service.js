@@ -1,21 +1,26 @@
+```js
 const { GoogleGenAI } = require("@google/genai");
 const { z } = require("zod");
 const { zodToJsonSchema } = require("zod-to-json-schema");
-const puppeteer = require("puppeteer");
 
 // ✅ CACHE IMPORT
 const { cache, getCacheKey } = require("../utils/cache");
+
+/* =========================
+   GEMINI CONFIG
+========================= */
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GOOGLE_GENAI_API_KEY,
 });
 
 /* =========================
-   ZOD SCHEMAS
+   ZOD SCHEMA
 ========================= */
 
 const interviewReportSchema = z.object({
   matchScore: z.number(),
+
   technicalQuestions: z.array(
     z.object({
       question: z.string(),
@@ -23,6 +28,7 @@ const interviewReportSchema = z.object({
       answer: z.string(),
     })
   ),
+
   behavioralQuestions: z.array(
     z.object({
       question: z.string(),
@@ -30,12 +36,14 @@ const interviewReportSchema = z.object({
       answer: z.string(),
     })
   ),
+
   skillGaps: z.array(
     z.object({
       skill: z.string(),
       severity: z.enum(["low", "medium", "high"]),
     })
   ),
+
   preparationPlan: z.array(
     z.object({
       day: z.number(),
@@ -43,22 +51,21 @@ const interviewReportSchema = z.object({
       tasks: z.array(z.string()),
     })
   ),
+
   title: z.string(),
 });
 
-const resumePdfSchema = z.object({
-  html: z.string(),
-});
-
 /* =========================
-   SAFE AI CALL WITH CACHE + RETRY
+   SAFE AI GENERATOR
 ========================= */
 
 async function safeGenerate(prompt, schema) {
+
   const key = getCacheKey(prompt);
 
-  // 🔥 1. CHECK CACHE FIRST
+  // ✅ CHECK CACHE
   const cached = cache.get(key);
+
   if (cached) {
     console.log("⚡ Cache hit");
     return cached;
@@ -68,10 +75,16 @@ async function safeGenerate(prompt, schema) {
   let lastError;
 
   while (attempts < 3) {
+
     try {
+
+      console.log(`🧠 AI attempt ${attempts + 1}`);
+
       const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
+        model: "gemini-2.5-flash",
+
         contents: prompt,
+
         config: {
           responseMimeType: "application/json",
           responseSchema: zodToJsonSchema(schema),
@@ -85,23 +98,30 @@ async function safeGenerate(prompt, schema) {
 
       const validated = schema.parse(parsed);
 
-      // 🔥 2. STORE IN CACHE
+      // ✅ STORE CACHE
       cache.set(key, validated);
 
       return validated;
 
     } catch (err) {
-      console.error(`AI attempt ${attempts + 1} failed:`, err.message);
+
+      console.error(
+        `❌ AI attempt ${attempts + 1} failed:`,
+        err.message
+      );
+
       lastError = err;
       attempts++;
     }
   }
 
-  throw new Error("AI failed after 3 attempts: " + lastError.message);
+  throw new Error(
+    "AI failed after 3 attempts: " + lastError.message
+  );
 }
 
 /* =========================
-   INTERVIEW REPORT
+   GENERATE INTERVIEW REPORT
 ========================= */
 
 async function generateInterviewReport({
@@ -109,92 +129,56 @@ async function generateInterviewReport({
   selfDescription,
   jobDescription,
 }) {
+
   const prompt = `
-You are an expert interview assistant.
+You are an expert AI interview preparation assistant.
 
 STRICT RULES:
 - Return ONLY valid JSON
-- Follow schema exactly
+- Follow schema EXACTLY
+- No markdown
+- No explanations
 - No extra text
 
-DATA:
-Resume: ${resume}
-Self Description: ${selfDescription}
-Job Description: ${jobDescription}
+TASK:
+Analyze the candidate profile and generate:
+
+1. Match score
+2. Technical interview questions
+3. Behavioral interview questions
+4. Skill gaps
+5. Preparation roadmap
+6. Job title
+
+CANDIDATE RESUME:
+${resume}
+
+SELF DESCRIPTION:
+${selfDescription}
+
+JOB DESCRIPTION:
+${jobDescription}
 `;
 
-  return await safeGenerate(prompt, interviewReportSchema);
+  return await safeGenerate(
+    prompt,
+    interviewReportSchema
+  );
 }
 
 /* =========================
-   PDF GENERATOR (SAFE)
+   TEMP PDF FUNCTION
 ========================= */
 
-async function generatePdfFromHtml(htmlContent) {
-  const browser = await puppeteer.launch({
-    headless: "new",
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  });
+async function generateResumePdf() {
 
-  try {
-    const page = await browser.newPage();
+  console.log(
+    "⚠️ PDF generation temporarily disabled"
+  );
 
-    await page.setContent(htmlContent, {
-      waitUntil: "networkidle0",
-    });
-
-    const pdfBuffer = await page.pdf({
-      format: "A4",
-      printBackground: true,
-      margin: {
-        top: "20mm",
-        bottom: "20mm",
-        left: "15mm",
-        right: "15mm",
-      },
-    });
-
-    return pdfBuffer;
-  } finally {
-    await browser.close();
-  }
-}
-
-/* =========================
-   RESUME PDF GENERATION
-========================= */
-
-async function generateResumePdf({
-  resume,
-  selfDescription,
-  jobDescription,
-}) {
-  const prompt = `
-You are an expert resume writer.
-
-STRICT RULES:
-- Return ONLY valid JSON
-- No explanations
-
-FORMAT:
-{
-  "html": "<html>...</html>"
-}
-
-DATA:
-Resume: ${resume}
-Self Description: ${selfDescription}
-Job Description: ${jobDescription}
-
-Requirements:
-- ATS friendly
-- clean professional layout
-- 1-2 pages
-`;
-
-  const result = await safeGenerate(prompt, resumePdfSchema);
-
-  return await generatePdfFromHtml(result.html);
+  return Buffer.from(
+    "PDF generation temporarily disabled"
+  );
 }
 
 /* =========================
@@ -205,3 +189,4 @@ module.exports = {
   generateInterviewReport,
   generateResumePdf,
 };
+```
