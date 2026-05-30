@@ -1,4 +1,3 @@
-```js
 const { GoogleGenAI } = require("@google/genai");
 const { z } = require("zod");
 const { zodToJsonSchema } = require("zod-to-json-schema");
@@ -6,122 +5,123 @@ const { zodToJsonSchema } = require("zod-to-json-schema");
 const { cache, getCacheKey } = require("../utils/cache");
 
 const ai = new GoogleGenAI({
-  apiKey: process.env.GOOGLE_GENAI_API_KEY,
+apiKey: process.env.GOOGLE_GENAI_API_KEY,
 });
 
 const interviewReportSchema = z.object({
-  matchScore: z.number(),
+matchScore: z.number(),
 
-  technicalQuestions: z.array(
-    z.object({
-      question: z.string(),
-      intention: z.string(),
-      answer: z.string(),
-    })
-  ),
+technicalQuestions: z.array(
+z.object({
+question: z.string(),
+intention: z.string(),
+answer: z.string(),
+})
+),
 
-  behavioralQuestions: z.array(
-    z.object({
-      question: z.string(),
-      intention: z.string(),
-      answer: z.string(),
-    })
-  ),
+behavioralQuestions: z.array(
+z.object({
+question: z.string(),
+intention: z.string(),
+answer: z.string(),
+})
+),
 
-  skillGaps: z.array(
-    z.object({
-      skill: z.string(),
-      severity: z.enum(["low", "medium", "high"]),
-    })
-  ),
+skillGaps: z.array(
+z.object({
+skill: z.string(),
+severity: z.enum(["low", "medium", "high"]),
+})
+),
 
-  preparationPlan: z.array(
-    z.object({
-      day: z.number(),
-      focus: z.string(),
-      tasks: z.array(z.string()),
-    })
-  ),
+preparationPlan: z.array(
+z.object({
+day: z.number(),
+focus: z.string(),
+tasks: z.array(z.string()),
+})
+),
 
-  title: z.string(),
+title: z.string(),
 });
 
 async function safeGenerate(prompt, schema) {
+const key = getCacheKey(prompt);
 
-  const key = getCacheKey(prompt);
+const cached = cache.get(key);
 
-  const cached = cache.get(key);
+if (cached) {
+console.log("Cache hit");
+return cached;
+}
 
-  if (cached) {
-    console.log("Cache hit");
-    return cached;
-  }
+let attempts = 0;
+let lastError;
 
-  let attempts = 0;
-  let lastError;
+while (attempts < 3) {
+try {
+console.log("AI attempt " + (attempts + 1));
 
-  while (attempts < 3) {
+```
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: prompt,
 
-    try {
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: zodToJsonSchema(schema),
+    },
+  });
 
-      console.log("AI attempt " + (attempts + 1));
+  const parsed =
+    typeof response.text === "string"
+      ? JSON.parse(response.text)
+      : response.text;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: prompt,
+  const validated = schema.parse(parsed);
 
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: zodToJsonSchema(schema),
-        },
-      });
+  cache.set(key, validated);
 
-      const parsed =
-        typeof response.text === "string"
-          ? JSON.parse(response.text)
-          : response.text;
+  return validated;
 
-      const validated = schema.parse(parsed);
-
-      cache.set(key, validated);
-
-      return validated;
-
-    } catch (err) {
-
-      console.error(
-        "AI attempt " + (attempts + 1) + " failed:",
-        err.message
-      );
-
-      lastError = err;
-      attempts++;
-    }
-  }
-
-  throw new Error(
-    "AI failed after 3 attempts: " + lastError.message
+} catch (err) {
+  console.error(
+    "AI attempt " + (attempts + 1) + " failed:",
+    err.message
   );
+
+  lastError = err;
+  attempts++;
+}
+```
+
+}
+
+throw new Error(
+"AI failed after 3 attempts: " + lastError.message
+);
 }
 
 async function generateInterviewReport({
-  resume,
-  selfDescription,
-  jobDescription,
+resume,
+selfDescription,
+jobDescription,
 }) {
 
-  const prompt = `
+const prompt = `
 You are an expert AI interview preparation assistant.
 
 STRICT RULES:
-- Return ONLY valid JSON
-- Follow schema EXACTLY
-- No markdown
-- No explanations
-- No extra text
+
+* Return ONLY valid JSON
+* Follow schema EXACTLY
+* No markdown
+* No explanations
+* No extra text
 
 TASK:
 Analyze the candidate profile and generate:
+
 1. Match score
 2. Technical interview questions
 3. Behavioral interview questions
@@ -139,23 +139,21 @@ JOB DESCRIPTION:
 ${jobDescription}
 `;
 
-  return await safeGenerate(
-    prompt,
-    interviewReportSchema
-  );
+return await safeGenerate(
+prompt,
+interviewReportSchema
+);
 }
 
 async function generateResumePdf() {
+console.log("PDF generation temporarily disabled");
 
-  console.log("PDF generation temporarily disabled");
-
-  return Buffer.from(
-    "PDF generation temporarily disabled"
-  );
+return Buffer.from(
+"PDF generation temporarily disabled"
+);
 }
 
 module.exports = {
-  generateInterviewReport,
-  generateResumePdf,
+generateInterviewReport,
+generateResumePdf,
 };
-```
