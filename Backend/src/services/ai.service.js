@@ -4,9 +4,17 @@ const { zodToJsonSchema } = require("zod-to-json-schema");
 
 const { cache, getCacheKey } = require("../utils/cache");
 
+/* =========================
+GEMINI CONFIG
+========================= */
+
 const ai = new GoogleGenAI({
 apiKey: process.env.GOOGLE_GENAI_API_KEY,
 });
+
+/* =========================
+ZOD SCHEMA
+========================= */
 
 const interviewReportSchema = z.object({
 matchScore: z.number(),
@@ -45,7 +53,12 @@ tasks: z.array(z.string()),
 title: z.string(),
 });
 
+/* =========================
+SAFE AI GENERATOR
+========================= */
+
 async function safeGenerate(prompt, schema) {
+
 const key = getCacheKey(prompt);
 
 const cached = cache.get(key);
@@ -59,10 +72,12 @@ let attempts = 0;
 let lastError;
 
 while (attempts < 3) {
-try {
-console.log("AI attempt " + (attempts + 1));
 
 ```
+try {
+
+  console.log("AI attempt " + (attempts + 1));
+
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",
     contents: prompt,
@@ -85,6 +100,7 @@ console.log("AI attempt " + (attempts + 1));
   return validated;
 
 } catch (err) {
+
   console.error(
     "AI attempt " + (attempts + 1) + " failed:",
     err.message
@@ -101,6 +117,10 @@ throw new Error(
 "AI failed after 3 attempts: " + lastError.message
 );
 }
+
+/* =========================
+GENERATE INTERVIEW REPORT
+========================= */
 
 async function generateInterviewReport({
 resume,
@@ -145,13 +165,22 @@ interviewReportSchema
 );
 }
 
+/* =========================
+TEMP PDF FUNCTION
+========================= */
+
 async function generateResumePdf() {
+
 console.log("PDF generation temporarily disabled");
 
 return Buffer.from(
 "PDF generation temporarily disabled"
 );
 }
+
+/* =========================
+EXPORTS
+========================= */
 
 module.exports = {
 generateInterviewReport,
