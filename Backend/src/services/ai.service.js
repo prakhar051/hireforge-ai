@@ -3,20 +3,11 @@ const { GoogleGenAI } = require("@google/genai");
 const { z } = require("zod");
 const { zodToJsonSchema } = require("zod-to-json-schema");
 
-// Cache utilities
 const { cache, getCacheKey } = require("../utils/cache");
-
-/* =========================
-   GEMINI CONFIG
-========================= */
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GOOGLE_GENAI_API_KEY,
 });
-
-/* =========================
-   ZOD SCHEMA
-========================= */
 
 const interviewReportSchema = z.object({
   matchScore: z.number(),
@@ -55,15 +46,10 @@ const interviewReportSchema = z.object({
   title: z.string(),
 });
 
-/* =========================
-   SAFE AI GENERATOR
-========================= */
-
 async function safeGenerate(prompt, schema) {
 
   const key = getCacheKey(prompt);
 
-  // Check cache first
   const cached = cache.get(key);
 
   if (cached) {
@@ -97,7 +83,6 @@ async function safeGenerate(prompt, schema) {
 
       const validated = schema.parse(parsed);
 
-      // Save cache
       cache.set(key, validated);
 
       return validated;
@@ -118,10 +103,6 @@ async function safeGenerate(prompt, schema) {
     "AI failed after 3 attempts: " + lastError.message
   );
 }
-
-/* =========================
-   GENERATE INTERVIEW REPORT
-========================= */
 
 async function generateInterviewReport({
   resume,
@@ -164,10 +145,6 @@ ${jobDescription}
   );
 }
 
-/* =========================
-   TEMP PDF FUNCTION
-========================= */
-
 async function generateResumePdf() {
 
   console.log("PDF generation temporarily disabled");
@@ -176,10 +153,6 @@ async function generateResumePdf() {
     "PDF generation temporarily disabled"
   );
 }
-
-/* =========================
-   EXPORTS
-========================= */
 
 module.exports = {
   generateInterviewReport,
