@@ -44,7 +44,7 @@ The platform uses asynchronous job processing with BullMQ and Redis to handle AI
 
 ## Login Page
 
-<img width="100%" src="screenshots/login_page.png" />
+<img width="100%" src="screenshots\login_page.png" />
 
 ---
 
