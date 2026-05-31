@@ -42,6 +42,12 @@ The platform uses asynchronous job processing with BullMQ and Redis to handle AI
 
 # 🖼 Screenshots
 
+## Login Page
+
+<img width="100%" src="screenshots/login_page.png" />
+
+---
+
 ## Home Page
 
 <img width="100%" src="screenshots/home.png.png" />
