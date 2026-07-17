@@ -80,8 +80,9 @@ const Home = () => {
                             jobId
                         );
 
+                        const apiBase = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
                         const response = await fetch(
-                            `http://localhost:3000/api/interview/job/${jobId}`,
+                            `${apiBase}/interview/job/${jobId}`,
                             {
                                 credentials: "include",
                             }

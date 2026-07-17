@@ -73,7 +73,6 @@ let lastError;
 
 while (attempts < 3) {
 
-```
 try {
 
   console.log("AI attempt " + (attempts + 1));
@@ -109,7 +108,7 @@ try {
   lastError = err;
   attempts++;
 }
-```
+
 
 }
 
