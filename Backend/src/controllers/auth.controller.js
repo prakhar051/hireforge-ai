@@ -26,7 +26,7 @@ const generateToken = (user) => {
 const setCookie = (res, token) => {
   res.cookie("token", token, {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: isProd ? "none" : "lax",
     secure: isProd, // true in production (HTTPS)
   });
 };
@@ -144,7 +144,7 @@ async function logoutUserController(req, res) {
 
     res.clearCookie("token", {
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: isProd ? "none" : "lax",
       secure: isProd,
     });
 
